@@ -6,6 +6,7 @@ def flask(param):
 
 
 admin = {
+    'user_id': 'admin',
     'username': 'admin',
     'firstname': 'Admin',
     'lastname': 'Admin',
@@ -39,6 +40,7 @@ def check_for_user_credentials(username, password, collection):
     if user and user['password'] == password:
         print("returning true")
         user_data = {
+            'user_id': str(user['_id']),
             'username': user['email'],
             'firstname': user['firstname'],
             'lastname': user['lastname']

@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
       .charAt(0)
       .toUpperCase();
   }
+  callGetAppliances();
 });
 
 const profileIcon = document.getElementById("profile-icon");
@@ -29,3 +30,65 @@ profileUpload.addEventListener("change", (event) => {
     reader.readAsDataURL(file);
   }
 });
+
+callGetAppliances = () => {
+  userid = JSON.parse(localStorage.getItem("user_data")).user_id;
+  fetch("/getrentals/" + userid, {
+    method: "GET",
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log(data);
+      if (data.length == 0) {
+        document.getElementById("no-rentals").style.display = "block";
+        document.getElementById("history").style.display = "none";
+        return;
+      } else {
+        document.getElementById("no-rentals").style.display = "none";
+        document.getElementById("history").style.display = "block";
+      }
+      const ongoingRentals = data.filter(
+        (rental) =>
+          rental.return_status != "Returned" &&
+          new Date(rental.rental_end_date) >= new Date()
+      );
+      populateOngoingRentals(ongoingRentals);
+      const rentalHistory = data.filter(
+        (rental) => rental.return_status == "Returned"
+      );
+      populateRentalHistory(rentalHistory);
+    });
+};
+
+populateRentalHistory = (rentalHistory) => {
+  const rentalHistoryContainer = document.getElementById("rental-history");
+  rentalHistory.forEach((rental) => {
+    const rentalElement = document.createElement("div");
+    rentalElement.classList.add("rental-item");
+    start_date = new Date(rental.rental_start_date).toISOString().split("T")[0];
+    end_date = new Date(rental.rental_end_date).toISOString().split("T")[0];
+    rentalElement.innerHTML = `
+                <h4>${rental.appliance_brand} ${rental.appliance_model} - (${rental.appliance_type})</h4>
+                <p>Start Date: ${start_date}</p>
+                <p>End Date: ${end_date}</p>
+                `;
+    rentalHistoryContainer.appendChild(rentalElement);
+  });
+};
+
+populateOngoingRentals = (ongoingRentals) => {
+  const ongoingRentalsContainer = document.getElementById("ongoing-rentals");
+  ongoingRentals.forEach((rental) => {
+    console.log(rental);
+    const rentalElement = document.createElement("div");
+    rentalElement.classList.add("rental-item");
+    start_date = new Date(rental.rental_start_date).toISOString().split("T")[0];
+    end_date = new Date(rental.rental_end_date).toISOString().split("T")[0];
+    rentalElement.innerHTML = `
+            <h4>${rental.appliance_brand} ${rental.appliance_model} - (${rental.appliance_type})</h4>
+            <p>Start Date: ${start_date}</p>
+            <p>End Date: ${end_date}</p>
+            `;
+    ongoingRentalsContainer.appendChild(rentalElement);
+  });
+};

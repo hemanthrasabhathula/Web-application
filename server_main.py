@@ -2,6 +2,7 @@ from flask import Flask, request, render_template, send_from_directory, redirect
 from pymongo import MongoClient
 from validators import validate_input
 from login import user_login
+from dashboard import get_rentals_db
 
 app = Flask(__name__)
 app.secret_key = 'ABCD123'
@@ -41,6 +42,12 @@ def signup():
         return "Account created successfully!"
     else:
         return render_template('signup.html')
+
+
+@app.route('/getrentals/<user_id>', methods=['GET'])
+def get_rentals(user_id):
+    rentals = get_rentals_db(user_id)
+    return jsonify(rentals)
 
 
 def admin():
