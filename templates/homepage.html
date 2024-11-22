@@ -52,28 +52,25 @@
 </div>
 
 <div class="container">
+    {% for p_data in product_data %}
     <div class="appliance">
-        <img style="width: 250px; height:500px;" src="https://pisces.bbystatic.com/image2/BestBuy_US/images/products/6573/6573547_sd.jpg"><br>
+        <img style="width: 250px; height:500px;" src="{{ p_data['image_url'] }}" alt="{{ p_data['type'] }}"><br>
         <div class="appliance-text">
-            <h2>Forklift</h2>
-            <p>Efficient and reliable for lifting heavy loads.</p>
-            <p>Price: $25,000</p>
+            <h2>{{ p_data['brand'] }} {{ p_data['type'] }}</h2>
+            <p>Model : {{ p_data['model'] }}</p>
+            <p>Condition : {{ p_data['condition'] }}</p>
+            <p>Features : {% for feature in range(3) %}</p>
+            <p>{{ p_data['features'][feature] }}</p>
+            {% endfor %}
+            <p>Price: {{ p_data['rental_rate'] }}</p>
+            <p>Deposit Amount: {{ p_data['deposit_amount'] }}</p>
             <div class="appliance-button">
                 <button>Order now</button>
                 <button>Add to cart</button>
             </div>
         </div>
     </div>
-    <div class="appliance">
-        <h2>Palett Jack</h2>
-        <p>Perfect for moving pallets and heavy items.</p>
-        <p>Price: $1,500</p>
-    </div>
-    <div class="appliance">
-        <h2>Conveyor Belt</h2>
-        <p>Streamline your warehouse operations.</p>
-        <p>Price: $10,000</p>
-    </div>
+    {% endfor %}
 </div>
 
 <footer>
