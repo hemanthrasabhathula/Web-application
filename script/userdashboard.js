@@ -71,6 +71,7 @@ populateRentalHistory = (rentalHistory) => {
                 <h4>${rental.appliance_brand} ${rental.appliance_model} - (${rental.appliance_type})</h4>
                 <p>Start Date: ${start_date}</p>
                 <p>End Date: ${end_date}</p>
+                 <p>Return Status: ${rental.return_status}</p>
                 `;
     rentalHistoryContainer.appendChild(rentalElement);
   });
@@ -88,6 +89,7 @@ populateOngoingRentals = (ongoingRentals) => {
             <h4>${rental.appliance_brand} ${rental.appliance_model} - (${rental.appliance_type})</h4>
             <p>Start Date: ${start_date}</p>
             <p>End Date: ${end_date}</p>
+            <p>Return Status: ${rental.return_status}</p>
             `;
     ongoingRentalsContainer.appendChild(rentalElement);
   });
