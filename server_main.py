@@ -1,12 +1,14 @@
-from flask import Flask, request, render_template, send_from_directory, redirect, url_for, flash, session
+from flask import Flask, request, render_template, send_from_directory, redirect, url_for, flash, jsonify, session
 from dbManager import DbManager
 from validators import validate_input
 from login import user_login
+from dashboard import get_rentals_db
 from datetime import timedelta
 
 app = Flask(__name__)
 app.secret_key = 'ABCD123'
 app.permanent_session_lifetime = timedelta(minutes=30)
+
 
 @app.route('/')
 def index():
@@ -19,14 +21,16 @@ def index():
 @app.route('/login.html', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        isLogin = user_login(DbManager.get_users_collection())
-        if isLogin == 'true':
+        isLogin, user = user_login(DbManager.get_users_collection())
+        if isLogin:
             session.permanent = True
             session['email'] = request.form.get('username', '').strip()
-            return redirect(url_for('user_dashboard'))
+            return jsonify({'status': 'success', 'user_data': user})
+            # return redirect(url_for('user_dashboard'))
         else:
-            flash('Invalid username or password')
-            return render_template('login.html')
+            # flash('Invalid username or password')
+            return jsonify({'status': 'failure', 'message': 'Invalid username or password'})
+            # return render_template('login.html')
     else:
         if 'email' in session:
             return redirect(url_for('user_dashboard'))
@@ -43,6 +47,13 @@ def signup():
     else:
         return render_template('signup.html')
 
+
+@app.route('/getrentals/<user_id>', methods=['GET'])
+def get_rentals(user_id):
+    rentals = get_rentals_db(user_id)
+    return jsonify(rentals)
+
+
 @app.route('/logout')
 def logout():
     if 'email' in session:
@@ -56,7 +67,8 @@ def logout():
 def user_dashboard():
     if session.get('email') is None:
         return redirect(url_for('login'))
-    user_details = (DbManager.get_users_collection()).find_one({'email': session['email']})
+    user_details = (DbManager.get_users_collection()
+                    ).find_one({'email': session['email']})
     usr_name = user_details['firstname']
     return render_template('userdashboard.html', name=usr_name)
 
@@ -64,13 +76,16 @@ def user_dashboard():
 def admin():
     pass
 
+
 @app.route('/css/<path:filename>')
 def send_css(filename):
     return send_from_directory('./css/', filename)
 
+
 @app.route('/script/<path:filename>')
 def send_javascript(filename):
     return send_from_directory('./script/', filename)
+
 
 @app.route('/images/<path:filename>')
 def send_imagesfile(filename):
