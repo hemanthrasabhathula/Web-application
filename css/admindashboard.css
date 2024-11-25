@@ -206,16 +206,202 @@ body {
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  width: 48%;
+  width: 100%;
+}
+.search-add-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
-.rentals-section {
+#search-input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+#add-appliance-btn {
+  padding: 10px 20px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  height: 100%; /* Ensure the button has the same height as the input */
+}
+
+#add-appliance-btn:hover {
+  background-color: #0056b3;
+}
+
+.appliance-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.appliance-item {
+  flex: 1 1 calc(50% - 20px); /* Two-column layout with gap */
+  max-width: 48%;
+  box-sizing: border-box;
+}
+
+/* Appliance card styling */
+.appliance-card {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.appliance-image {
+  margin-right: 20px;
+}
+
+.appliance-details {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.appliance-details p {
+  margin: 5px 0;
+  width: 50%; /* Two-column layout */
+}
+
+.appliance-details p strong {
+  font-weight: bold;
+}
+
+.edit-input {
+  border: none;
+  background: none;
+  outline: none;
+  width: 100%;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+.edit-input[readonly] {
+  border: none;
+}
+
+.edit-input.editable {
+  border: 1px solid #ccc;
+  background: #fff;
+}
+
+.edit-btn,
+.save-btn,
+.delete-btn {
+  margin-top: 10px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 4px;
+  margin-right: 4px;
+}
+
+.edit-btn {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.save-btn {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.delete-btn {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+/* Modal styling */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Prevent scrollbars */
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 100%;
+  max-width: 600px;
+  border-radius: 8px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Center the modal */
+}
+
+.close-btn {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.modal-content h3 {
+  width: 100%;
+  margin-top: 0;
+}
+
+.modal-content .form-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.modal-content label {
+  flex: 1;
   margin-top: 10px;
 }
 
-.rental-item {
-  background-color: #f9f9f9;
+.modal-content input,
+.modal-content textarea {
+  flex: 2;
   padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
   border-radius: 4px;
-  margin-bottom: 10px;
+}
+
+.modal-content button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.modal-content button:hover {
+  background-color: #0056b3;
 }
