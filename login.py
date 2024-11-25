@@ -18,13 +18,13 @@ def user_login(collection):
     password = request.form.get('password', '').strip()
 
     if username and password:
-        if username.lower() == 'admin' and password == 'Admin.123':
-            return True, admin
-        else:
-            isLogin, user = check_for_user_credentials(
-                username, password, collection)
+        # if username.lower() == 'admin' and password == 'Admin.123':
+        #     return True, admin
+        # else:
+        isLogin, user = check_for_user_credentials(
+            username, password, collection)
 
-            return isLogin, user
+        return isLogin, user
         # if isLogin:
         #     print("redirecting to dashboard")
         #     # return redirect(url_for('user_dashboard'))
@@ -42,7 +42,8 @@ def check_for_user_credentials(username, password, collection):
             'user_id': str(user['_id']),
             'username': user['email'],
             'firstname': user['firstname'],
-            'lastname': user['lastname']
+            'lastname': user['lastname'],
+            'type': user['type'] if 'type' in user else 'user',
         }
         return True, user_data
     print("returning flase")

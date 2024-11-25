@@ -3,6 +3,7 @@ from dbManager import DbManager
 from validators import validate_input
 from login import user_login
 from dashboard import get_rentals_db
+from appliances import get_appliances_db, update_appliance_db, add_appliance_db, delete_appliance_db
 from datetime import timedelta
 
 app = Flask(__name__)
@@ -54,6 +55,46 @@ def get_rentals(user_id):
     return jsonify(rentals)
 
 
+@app.route('/getAllAppliances', methods=['GET'])
+def get_appliances():
+    appliances = get_appliances_db()
+    return jsonify({'status': 'success', 'data': appliances})
+
+
+@app.route("/updateAppliance/<appliance_id>", methods=['PATCH'])
+def update_appliance(appliance_id):
+    appliance = request.get_json()
+    print(appliance)
+
+    result = update_appliance_db(appliance_id, appliance)
+
+    if result:
+        return jsonify({'status': 'success'})
+    else:
+        return jsonify({'status': 'failure'})
+
+
+@app.route('/addAppliance', methods=['POST'])
+def add_appliance():
+    appliance = request.get_json()
+    print(appliance)
+
+    result = add_appliance_db(appliance)
+    if result:
+        return jsonify({'status': 'success'})
+    else:
+        return jsonify({'status': 'failure'})
+
+
+@app.route('/deleteAppliance/<appliance_id>', methods=['DELETE'])
+def delete_appliance(appliance_id):
+    result = delete_appliance_db(appliance_id)
+    if result:
+        return jsonify({'status': 'success'})
+    else:
+        return jsonify({'status': 'failure'})
+
+
 @app.route('/logout')
 def logout():
     if 'email' in session:
@@ -71,6 +112,13 @@ def user_dashboard():
                     ).find_one({'email': session['email']})
     usr_name = user_details['firstname']
     return render_template('userdashboard.html', name=usr_name)
+
+
+@app.route('/admindashboard')
+def admin_dashboard():
+    if session.get('email') is None:
+        return redirect(url_for('login'))
+    return render_template('admindashboard.html')
 
 
 def admin():

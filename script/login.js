@@ -19,8 +19,13 @@ document
       .then((response) => response.json())
       .then((data) => {
         if (data.status === "success") {
-          localStorage.setItem("user_data", JSON.stringify(data.user_data));
-          window.location.href = "/dashboard";
+          const userData = data.user_data;
+          localStorage.setItem("user_data", JSON.stringify(userData));
+          if (userData.type === "admin") {
+            window.location.href = "/admindashboard";
+          } else {
+            window.location.href = "/dashboard";
+          }
         } else {
           document.getElementById("message").innerText = data.message;
         }

@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
       .charAt(0)
       .toUpperCase();
   }
-  callGetAppliances();
+  callGetRentals();
 });
 
 const profileIcon = document.getElementById("profile-icon");
@@ -31,7 +31,7 @@ profileUpload.addEventListener("change", (event) => {
   }
 });
 
-callGetAppliances = () => {
+callGetRentals = () => {
   userid = JSON.parse(localStorage.getItem("user_data")).user_id;
   fetch("/getrentals/" + userid, {
     method: "GET",
