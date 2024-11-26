@@ -1,3 +1,4 @@
+from bson import ObjectId
 from pymongo import MongoClient
 
 
@@ -24,7 +25,7 @@ class DbManager:
     @staticmethod
     def get_Appliances_Details_WithId(appliance_id):
         collection = DbManager.get_appliances_collection()
-        return collection.find_one({'appliance_id': appliance_id})
+        return collection.find_one({'_id': ObjectId(appliance_id)})
 
     @staticmethod
     def get_rentals_collection():
