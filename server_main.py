@@ -1,19 +1,24 @@
+import re
 from flask import Flask, request, render_template, send_from_directory, redirect, url_for, flash, jsonify, session
 from dbManager import DbManager
 from validators import validate_input
 from login import user_login
 from dashboard import get_rentals_db
-from appliances import get_appliances_db, update_appliance_db, add_appliance_db, delete_appliance_db
+from appliances import get_appliances_db, update_appliance_db, add_appliance_db, delete_appliance_db, find_appliances_by_id
 from datetime import timedelta
 
 app = Flask(__name__)
 app.secret_key = 'ABCD123'
 app.permanent_session_lifetime = timedelta(minutes=30)
 
+
 @app.route('/')
 def index():
     collection = DbManager.get_appliances_collection()
     items_Data = collection.find()
+    items_Data = list(items_Data)
+    for item in items_Data:
+        item['appliance_id'] = str(item['_id'])
     return render_template('homepage.html', product_data=items_Data)
 
 
@@ -94,6 +99,18 @@ def delete_appliance(appliance_id):
         return jsonify({'status': 'failure'})
 
 
+@app.route('/findProducts', methods=['POST'])
+def find_appliances():
+    appliancesList = request.get_json()
+    print(appliancesList)
+    print(appliancesList.get('products'))
+    appliances = find_appliances_by_id(appliancesList.get('products'))
+    if appliances:
+        return jsonify({'status': 'success',  'data': appliances})
+    else:
+        return jsonify({'status': 'failure',  'data': []})
+
+
 @app.route('/logout')
 def logout():
     if 'email' in session:
@@ -107,7 +124,8 @@ def logout():
 def user_dashboard():
     if session.get('email') is None:
         return redirect(url_for('login'))
-    user_details = (DbManager.get_users_collection()).find_one({'email': session['email']})
+    user_details = (DbManager.get_users_collection()
+                    ).find_one({'email': session['email']})
     usr_name = user_details['firstname']
     return render_template('userdashboard.html', name=usr_name)
 
@@ -118,13 +136,23 @@ def admin_dashboard():
         return redirect(url_for('login'))
     return render_template('admindashboard.html')
 
+
+@app.route('/cart')
+def cart_page():
+    if session.get('email') is None:
+        return redirect(url_for('login'))
+    return render_template('cart.html')
+
+
 @app.route('/placeorder', methods=['POST'])
 def place_order():
-    is_success = DbManager.add_order_to_db(request.args.get('product_id'), session.get('email'))
+    is_success = DbManager.add_order_to_db(
+        request.args.get('product_id'), session.get('email'))
     if is_success:
         return redirect('/conform?product_id=' + request.args.get('product_id'))
     else:
         return "failed"
+
 
 @app.route('/conform')
 def conform():
@@ -133,7 +161,7 @@ def conform():
 
 @app.route('/order')
 def order_page():
-    return render_template('order.html', item_Details = DbManager.get_Appliances_Details_WithId(request.args.get('product_id')))
+    return render_template('order.html', item_Details=DbManager.get_Appliances_Details_WithId(request.args.get('product_id')))
 
 
 @app.route('/css/<path:filename>')
@@ -144,6 +172,7 @@ def send_css(filename):
 @app.route('/script/<path:filename>')
 def send_javascript(filename):
     return send_from_directory('./script/', filename)
+
 
 @app.route('/images/<path:filename>')
 def send_imagesfile(filename):
