@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
+let products = [];
 
 function updateCartBadge() {
   const cart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -39,10 +40,16 @@ const callGetProducts = () => {
   })
     .then((response) => response.json())
     .then((data) => {
+      products = data.data.map((product) => ({
+        ...product,
+        quantity: 1,
+        insurance: null,
+        deliveryType: "pickup",
+        deliveryDate: null,
+      }));
       let totalRate = 0;
       let totalDeposit = 0;
       console.log(data);
-      const products = data.data;
       const productContainer = document.getElementById("cart-items");
       productContainer.innerHTML = "";
       products.forEach((product) => {
@@ -65,12 +72,24 @@ const callGetProducts = () => {
             <p>Deposit Amount: $<span id="deposit-amount-${product_id}">${product.deposit_amount}</span></p>
             <span>
             <label for="quantity-${product_id}">Quantity:</label>
-          
-            <input type="number" id="quantity-${product_id}" class="quantity-input" value="1" min="1" onchange="updateProductTotal('${product_id}', ${totalRate}, ${totalDeposit}, this.value)">
+            <input type="number" id="quantity-${product_id}" class="quantity-input" value="${product.quantity}" min="1" onchange="updateProductTotal('${product_id}', ${product.rental_rate}, ${product.deposit_amount}, this.value)">
             </span>
+            <div>
+              <label>Insurance:</label>
+              <input type="radio" name="insurance-${product_id}" value="Active" onchange="updateProductInsurance('${product_id}', this.value)"> Yes
+              <input type="radio" name="insurance-${product_id}" value="InActive" onchange="updateProductInsurance('${product_id}', this.value)"> No
+              <span id="insurance-error-${product_id}" class="error-message"></span>
+            </div>
+            <div>
+              <label>Delivery Type:</label>
+              <input type="radio" name="delivery-type-${product_id}" value="pickup" onchange="updateProductDeliveryType('${product_id}', this.value)"> Pick-up
+              <input type="radio" name="delivery-type-${product_id}" value="delivery" onchange="updateProductDeliveryType('${product_id}', this.value)"> Delivery
+              <span id="delivery-type-error-${product_id}" class="error-message"></span>
+            <input type="date" id="delivery-date-${product_id}" class="delivery-date-input" onchange="updateProductDeliveryDate('${product_id}', this.value)">
+            </div>
+          
           </div>
-           <button class="delete-button" onclick="deleteFromCart('${product_id}')">Delete</button>
-        
+          <button class="delete-button" onclick="deleteFromCart('${product_id}')">Delete</button>
         `;
 
         productContainer.appendChild(productCard);
@@ -84,7 +103,7 @@ const callGetProducts = () => {
           <h3>Total Deposit Amount: $<span id="total-deposit">${totalDeposit}</span></h3>
         </div>
         <div class="checkout-container">
-          <button class="checkout-button" onclick="onCartClick()">Checkout</button>
+          <button class="checkout-button" onclick='onCartClick()'>Checkout</button>
         </div>
       `;
       productContainer.appendChild(total);
@@ -105,11 +124,93 @@ const deleteFromCart = (product_id) => {
   window.dispatchEvent(new Event("cartUpdated"));
 };
 
+const updateProductInsurance = (productId, insurance) => {
+  const product = products.find((p) => p._id === productId);
+  product.insurance = insurance;
+  document.getElementById(`insurance-error-${productId}`).textContent = "";
+};
+
+const updateProductDeliveryType = (productId, deliveryType) => {
+  const product = products.find((p) => p._id === productId);
+  product.deliveryType = deliveryType;
+  toggleDeliveryDate(productId, deliveryType);
+  document.getElementById(`delivery-type-error-${productId}`).textContent = "";
+};
+
+const toggleDeliveryDate = (productId, deliveryType) => {
+  const deliveryDateInput = document.getElementById(
+    `delivery-date-${productId}`
+  );
+  deliveryDateInput.style.display = "inline-block";
+};
+
+const updateProductDeliveryDate = (productId, deliveryDate) => {
+  const product = products.find((p) => p._id === productId);
+  product.deliveryDate = deliveryDate;
+};
+
 const onCartClick = () => {
-  window.location.href = "/cart";
+  let valid = true;
+  products.forEach((product) => {
+    if (!product.insurance) {
+      document.getElementById(`insurance-error-${product._id}`).textContent =
+        "Please select insurance option.";
+      valid = false;
+    }
+    if (!product.deliveryType) {
+      document.getElementById(
+        `delivery-type-error-${product._id}`
+      ).textContent = "Please select delivery type.";
+      valid = false;
+    }
+    if (!product.deliveryDate) {
+      document.getElementById(
+        `delivery-type-error-${product._id}`
+      ).textContent = "Please select a date.";
+      valid = false;
+    }
+  });
+
+  if (!valid) {
+    return;
+  }
+
+  // Handle the checkout process with the products array
+  console.log("Final products array:", products);
+  const user = JSON.parse(localStorage.getItem("user_data"));
+  console.log(user);
+  fetch("/checkout", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      user: user,
+      products: products,
+    }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.status === "success") {
+        alert("Checkout successful!");
+        localStorage.setItem("cart", JSON.stringify([]));
+        window.dispatchEvent(new Event("cartUpdated"));
+        callGetProducts();
+      } else {
+        alert("Checkout failed. Please try again.");
+      }
+    });
+
+  // You can send the products array to the backend or perform other actions here
 };
 
 const updateProductTotal = (productId, rentalRate, depositAmount, quantity) => {
+  console.log(productId, rentalRate, depositAmount, quantity);
+  const product = products.find((p) => p._id === productId);
+  console.log("before", product);
+  product.quantity = Number.parseInt(quantity);
+
+  console.log("after", product);
   const rentalRateElement = document.getElementById(`rental-rate-${productId}`);
   const depositAmountElement = document.getElementById(
     `deposit-amount-${productId}`

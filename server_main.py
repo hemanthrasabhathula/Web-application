@@ -48,7 +48,7 @@ def signup():
         print(request.form)
         user_data = validate_input()
         (DbManager.get_users_collection()).insert_one(user_data)
-        return "Account created successfully!"
+        return render_template('login.html')
     else:
         return render_template('signup.html')
 
@@ -152,6 +152,27 @@ def place_order():
         return redirect('/conform?product_id=' + request.args.get('product_id'))
     else:
         return "failed"
+
+
+@app.route('/checkout', methods=['POST'])
+def checkout_page():
+    if session.get('email') is None:
+        return redirect(url_for('login'))
+
+    user = request.get_json().get('user')
+    print(user)
+    products = request.get_json().get('products')
+    print(products)
+
+    for product in products:
+        is_data_saved = DbManager.add_order_to_db_cart(product, user)
+        if not is_data_saved:
+            break
+
+    if is_data_saved:
+        return {'status': 'success', 'message': 'Order placed successfully', 'data': {'user': user, 'products': products}}
+    else:
+        return {'status': 'failure', 'message': 'Failed to place order'}
 
 
 @app.route('/conform')
