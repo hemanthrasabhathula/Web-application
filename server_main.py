@@ -6,6 +6,7 @@ from login import user_login
 from dashboard import get_rentals_db
 from appliances import get_appliances_db, update_appliance_db, add_appliance_db, delete_appliance_db, find_appliances_by_id
 from datetime import timedelta
+from rentalagreement import get_products_by_ids_db
 
 app = Flask(__name__)
 app.secret_key = 'ABCD123'
@@ -56,7 +57,7 @@ def signup():
 @app.route('/getrentals/<user_id>', methods=['GET'])
 def get_rentals(user_id):
     rentals = get_rentals_db(user_id)
-    return jsonify(rentals)
+    return {'status': 'success', 'data': rentals}
 
 
 @app.route('/getAllAppliances', methods=['GET'])
@@ -164,13 +165,16 @@ def checkout_page():
     products = request.get_json().get('products')
     print(products)
 
+    saved_data = []
     for product in products:
-        is_data_saved = DbManager.add_order_to_db_cart(product, user)
+        is_data_saved, saved_product = DbManager.add_order_to_db_cart(
+            product, user)
         if not is_data_saved:
             break
+        saved_data.append(saved_product)
 
-    if is_data_saved:
-        return {'status': 'success', 'message': 'Order placed successfully', 'data': {'user': user, 'products': products}}
+    if saved_data.__len__() == products.__len__():
+        return {'status': 'success', 'message': 'Order placed successfully', 'data': {'user': user, 'products': saved_data}}
     else:
         return {'status': 'failure', 'message': 'Failed to place order'}
 
@@ -178,6 +182,22 @@ def checkout_page():
 @app.route('/conform')
 def conform():
     return render_template('conformation.html')
+
+
+@app.route('/getProductsByIds', methods=['POST'])
+def fetch_products_by_ids():
+    user = request.get_json().get('user')
+    productIds = request.get_json().get('productIds')
+
+    products_data = get_products_by_ids_db(productIds, user)
+    print(products_data)
+    return jsonify({'status': 'success', 'data': products_data})
+
+
+@app.route('/checkoutConfirmation')
+@app.route('/checkoutConfirmation.html')
+def checkout_confirmation():
+    return render_template('checkoutConfirmation.html')
 
 
 @app.route('/order')

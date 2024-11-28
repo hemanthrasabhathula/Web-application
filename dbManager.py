@@ -1,3 +1,4 @@
+import re
 from bson import ObjectId
 from pymongo import MongoClient
 from flask import request
@@ -180,7 +181,7 @@ class DbManager:
         return_status = 'not returned'
         damage_report = 'none'
 
-        rental_collection.insert_one({
+        rental_collection_obj = {
             'appliance_id': ObjectId(product_id),
             'customer_id': customer_id,
             'rental_start_date': rental_start_date,
@@ -193,6 +194,13 @@ class DbManager:
             'return_status': return_status,
             'damage_report': damage_report,
             'delivery_type': delivery_type
-        })
+        }
 
-        return is_data_saved
+        rental_cursor = rental_collection.insert_one(rental_collection_obj)
+        rental_collection_obj['_id'] = str(rental_cursor.inserted_id)
+        rental_collection_obj['appliance_id'] = str(
+            rental_collection_obj['appliance_id'])
+        rental_collection_obj['customer_id'] = str(
+            rental_collection_obj['customer_id'])
+
+        return is_data_saved, rental_collection_obj

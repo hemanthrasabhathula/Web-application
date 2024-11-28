@@ -195,7 +195,15 @@ const onCartClick = () => {
         alert("Checkout successful!");
         localStorage.setItem("cart", JSON.stringify([]));
         window.dispatchEvent(new Event("cartUpdated"));
-        callGetProducts();
+        const productIds = data.data.products
+          .map((product) => product._id)
+          .join(",");
+        const queryParams = `?productIds=${productIds}`;
+
+        // Redirect to confirmation page with query parameters
+        window.location.href = `/checkoutConfirmation${queryParams}`;
+
+        //callGetProducts();
       } else {
         alert("Checkout failed. Please try again.");
       }
