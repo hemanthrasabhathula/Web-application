@@ -1,4 +1,5 @@
 import re
+import json
 from flask import Flask, request, render_template, send_from_directory, redirect, url_for, flash, jsonify, session
 from dbManager import DbManager
 from validators import validate_input
@@ -31,7 +32,15 @@ def login():
         if isLogin:
             session.permanent = True
             session['email'] = request.form.get('username', '').strip()
-            return jsonify({'status': 'success', 'user_data': user})
+            if session.get('redirect') :
+                args = session.pop('redirect')
+                user['type'] = 'redirect'
+                user['redirect'] = args['redirect']
+                if 'params' in args and args['params'] is not None:
+                    user['params'] = args['params']
+                return jsonify({'status': 'success', 'user_data': user})
+            else:
+                return jsonify({'status': 'success', 'user_data': user})
             # return redirect(url_for('user_dashboard'))
         else:
             # flash('Invalid username or password')
@@ -46,7 +55,6 @@ def login():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        print(request.form)
         user_data = validate_input()
         (DbManager.get_users_collection()).insert_one(user_data)
         return render_template('login.html')
@@ -147,10 +155,13 @@ def cart_page():
 
 @app.route('/placeorder', methods=['POST'])
 def place_order():
-    is_success = DbManager.add_order_to_db(
-        request.args.get('product_id'), session.get('email'))
+    is_success, display_info = DbManager.add_order_to_db(request.args.get('product_id'), session.get('email'))
     if is_success:
-        return redirect('/conform?product_id=' + request.args.get('product_id'))
+        #return redirect('/conform?product_id=' + request.args.get('product_id'))
+        #return render_template('conformation.html', display_data=display_info)
+        display_info['order_id'] = str(display_info['order_id'])
+        session['order_info'] = display_info
+        return redirect(url_for('payment'))
     else:
         return "failed"
 
@@ -179,6 +190,20 @@ def checkout_page():
         return {'status': 'failure', 'message': 'Failed to place order'}
 
 
+@app.route('/payment', methods=['GET','POST'])
+def payment():
+    data = session.get('order_info')
+    if request.method == 'GET':
+        return render_template('payment.html', order_data=data)
+    else:
+        is_success = DbManager.add_payment_details_to_db(data)
+        if is_success:
+            if data:
+                session.pop('order_info', None)
+            return render_template('conformation.html', display_data=data)
+        else:
+            return "Issue Happened try again later"
+
 @app.route('/conform')
 def conform():
     return render_template('conformation.html')
@@ -202,7 +227,11 @@ def checkout_confirmation():
 
 @app.route('/order')
 def order_page():
-    return render_template('order.html', item_Details=DbManager.get_Appliances_Details_WithId(request.args.get('product_id')))
+    if session.get('email') is None:
+        session['redirect'] = { "redirect":"/order", "params": {'product_id':request.args.get('product_id')}}
+        return redirect(url_for('login'))
+    else:
+        return render_template('order.html', item_Details = DbManager.get_Appliances_Details_WithId(request.args.get('product_id')))
 
 
 @app.route('/css/<path:filename>')
