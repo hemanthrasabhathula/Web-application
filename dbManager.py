@@ -11,6 +11,7 @@ class DbManager:
     client = MongoClient(
         'mongodb+srv://rxk40660:Admin123@cluster0.oxjxd.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
     db = client['project']
+    
     local_timezone = pytz.timezone('America/New_York')
 
     @staticmethod
